@@ -1,46 +1,59 @@
-import cx_Oracle
+import os
+
+import psycopg2
 import csv
 from datetime import datetime
 
-# Параметры подключения к БД
-dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='xe')
-connection = cx_Oracle.connect(user='system', password='oracle', dsn=dsn_tns)
+from dotenv import load_dotenv
 
-# Формирую SQL-запрос
+load_dotenv()
+
+# Параметры подключения к БД
+conn = psycopg2.connect(
+    host=os.getenv("DATABASES_HOST"),
+    database=os.getenv("DATABASES_NAME"),
+    user=os.getenv("DATABASES_USER"),
+    password=os.getenv("DATABASES_PASSWORD"),
+    port=os.getenv("DATABASES_PORT")
+)
+
+# Создание курсора для выполнения запросов
+cur = conn.cursor()
+
+# SQL-запрос для получения списка клиентов с номером кредита, у которых баланс больше 1000
 query = """
-    SELECT 
-        C.First_Name || ' ' || C.Last_Name AS Client_Name,
-        CR.Credit_Number
+    SELECT
+        CONCAT(c.first_name, ' ', c.last_name) AS client_name,
+        cr.credit_number
     FROM
-        CLIENT C
+        client c
     JOIN
-        RELATION R ON C.id = R.Client
+        relation r ON c.id = r.client
     JOIN
-        CREDIT CR ON CR.id = R.Credit
+        credit cr ON r.credit = cr.id
     WHERE
-        CR.Balance > 1000
+        cr.balance > 1000
 """
 
-# Получаю данные
-cursor = connection.cursor()
-cursor.execute(query)
-results = cursor.fetchall()
+# Выполнение запроса
+cur.execute(query)
+rows = cur.fetchall()
 
-# Получаю текущую дату для имени файла
+# Получение текущей даты для имени файла
 current_date = datetime.now().strftime("%d.%m.%Y")
-filename = f"report_{current_date}.csv"
+file_name = f"report_{current_date}.csv"
 
-# Сохраняю данные в CSV файл
-with open(filename, mode='w', newline='', encoding='utf-8') as file:
+# Запись результатов в CSV файл
+with open(file_name, mode='w', newline='') as file:
     writer = csv.writer(file)
-    # Записываю заголовки
+    # Запись заголовков
     writer.writerow(["Client Name", "Credit Number"])
-    # Записываю строки данных
-    for row in results:
-        writer.writerow(row)
+    # Запись данных
+    writer.writerows(rows)
 
-# Закрываю курсор и соединение
-cursor.close()
-connection.close()
+# Закрытие соединения
+cur.close()
+conn.close()
 
-print(f"Данные успешно сохранены в файл {filename}")
+print(f"Файл {file_name} успешно создан.")
+
