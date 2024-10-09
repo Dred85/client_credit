@@ -58,6 +58,7 @@ def test_write_to_csv(mocker):
     else:
         print(f"Файл {expected_file_name} не был создан.")
 
+
 def test_get_db_connection_failure(mocker):
     """
     Тест проверяет обработку ошибки при неудачном подключении к базе данных.
@@ -70,6 +71,7 @@ def test_get_db_connection_failure(mocker):
     assert conn is None
     mock_connect.assert_called_once()
 
+
 def test_fetch_client_credit_data_error():
     """
     Тест проверяет, что функция корректно обрабатывает ошибку при выполнении SQL-запроса.
@@ -78,6 +80,21 @@ def test_fetch_client_credit_data_error():
     mock_conn = MagicMock()
     mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
     mock_cursor.execute.side_effect = psycopg2.Error("Ошибка выполнения SQL-запроса")
+
+    result = fetch_client_credit_data(mock_conn)
+    assert result == []
+    mock_cursor.execute.assert_called_once()
+
+
+def test_fetch_client_credit_data_empty():
+    """
+    Тест проверяет, что функция корректно обрабатывает ситуацию, когда данные отсутствуют.
+    Мокирует подключение и возвращает пустой результат.
+    """
+    mock_conn = MagicMock()
+    mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
+
+    mock_cursor.fetchall.return_value = []
 
     result = fetch_client_credit_data(mock_conn)
     assert result == []
