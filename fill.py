@@ -1,9 +1,11 @@
 import os
+
 import psycopg2
 from dotenv import load_dotenv
 
 # Загрузка переменных окружения из .env файла
 load_dotenv()
+
 
 def get_db_connection():
     """Создает и возвращает подключение к базе данных."""
@@ -13,12 +15,13 @@ def get_db_connection():
             database=os.getenv("DATABASES_NAME"),
             user=os.getenv("DATABASES_USER"),
             password=os.getenv("DATABASES_PASSWORD"),
-            port=os.getenv("DATABASES_PORT")
+            port=os.getenv("DATABASES_PORT"),
         )
         return conn
     except psycopg2.DatabaseError as e:
         print(f"Ошибка подключения к базе данных: {e}")
         return None
+
 
 def create_tables(conn):
     """Создает таблицы CLIENT, CREDIT и RELATION."""
@@ -53,6 +56,7 @@ def create_tables(conn):
         cur.execute(create_credit_table)
         cur.execute(create_relation_table)
         conn.commit()
+
 
 def insert_data(conn):
     """Вставляет 5 значений в каждую таблицу."""
@@ -89,6 +93,7 @@ def insert_data(conn):
         cur.execute(insert_relation_data)
         conn.commit()
 
+
 def main():
     """Основная функция для создания таблиц и добавления данных."""
     conn = get_db_connection()
@@ -99,6 +104,7 @@ def main():
             print("Таблицы созданы и данные добавлены.")
         finally:
             conn.close()
+
 
 if __name__ == "__main__":
     main()
