@@ -93,11 +93,17 @@ def test_fetch_client_credit_data_empty():
     """
     mock_conn = MagicMock()
     mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
-
     mock_cursor.fetchall.return_value = []
-
     result = fetch_client_credit_data(mock_conn)
     assert result == []
     mock_cursor.execute.assert_called_once()
 
+def test_write_to_csv_no_data(mocker):
+    """
+    Тест проверяет, что функция корректно обрабатывает случай, когда данных для записи нет.
+    """
+    mock_open = mocker.patch("builtins.open", mocker.mock_open())
+    rows = []
+    write_to_csv(rows)
+    mock_open.assert_not_called()
 

@@ -51,6 +51,10 @@ def fetch_client_credit_data(conn):
 
 def write_to_csv(rows):
     """Записываю данные в CSV файл с именем, содержащим текущую дату."""
+    if not rows:
+        print("Нет данных для записи в CSV.")
+        return  # Если данных нет, функция завершает работу
+
     current_date = datetime.now().strftime("%d.%m.%Y")
     file_name = f"report_{current_date}.csv"
 
