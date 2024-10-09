@@ -71,3 +71,17 @@ def test_get_db_connection_failure(mocker):
     assert conn is None
     mock_connect.assert_called_once()
 
+def test_fetch_client_credit_data_error():
+    """
+    Тест проверяет, что функция корректно обрабатывает ошибку при выполнении SQL-запроса.
+    Мокирует выполнение запроса и выбрасывает ошибку.
+    """
+    mock_conn = MagicMock()
+    mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
+    mock_cursor.execute.side_effect = psycopg2.Error("Ошибка выполнения SQL-запроса")
+
+    result = fetch_client_credit_data(mock_conn)
+    assert result == []
+    mock_cursor.execute.assert_called_once()
+
+
